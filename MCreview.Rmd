@@ -1,0 +1,57 @@
+---
+title: "Refresher on Monte Carlo Methods"
+author: "David Buch"
+date: "8/19/2020"
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Basic Visualizations for EDA
+
+```{r}
+descrim <- read.csv("cal_descrimination.csv", stringsAsFactors = T)
+summary(descrim)
+plot(descrim[,c("Age","Age.Cohort", "Expenditures")])
+coplot(Expenditures ~ Age | Ethnicity, panel = panel.smooth, data = descrim)
+boxplot(Expenditures ~ Gender, data = descrim)
+```
+
+Also good to learn **ggplot2** and **lattice** packages.
+
+
+## Basic Model Fitting
+
+
+
+## Bayesian Model Fitting a.k.a. Posterior Computation
+0. Fully Conjugate Models
+1. Writing Custom Gibbs/MH Samplers
+2. Using JAGS
+3. Using Stan
+
+## Fully Conjugate
+
+## Writing Custom Gibbs/MH Samplers
+
+## Using JAGS
+
+## Using Stan
+
+
+## What do we do with all those simulations?
+1. Run Diagnostics (for *Markov Chain* MC)
+2. Run Diagnostics (for Model)
+3. Calculate Interesting Quantities!
+
+
+## MCMC Diagnostics
+
+
+## Model Diagnostics
+
+## Posterior Inference
+One of the big payoffs of Bayesian inference and especially Monte Carlo computation is straightforward calculation of interpretable inferential quantities. In the typical frequentist setting there can annoying computational and interpretational challenges in estimating, say, $\Pr(\alpha > 3\beta + \gamma )$, but this is no problem when we've simulated a large number of draws from the joint posterior distribution of our parameters.
+
