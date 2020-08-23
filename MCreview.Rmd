@@ -38,7 +38,7 @@ Also good to learn **ggplot2** and **lattice** packages.
 
 Advantages: 
 
-1. Fastest (only requires updating prior parameters to posterior ones)
+1. Fastest 
 2. No ambiguity in convergence
 
 Disadvantages: 
@@ -89,8 +89,21 @@ Disadvantages:
 
 ## MCMC Diagnostics
 
+Traceplots
+
+Lag-1 Scatter plots
+
+ACF plots
+
+Rhat/effective sample size
 
 ## Model Diagnostics
+
+posterior predictive distribution
+
+QQ-plots for regression
+
+Residuals vs fitted values
 
 ## Posterior Inference
 One of the big payoffs of Bayesian inference and especially Monte Carlo computation is straightforward calculation of interpretable inferential quantities. In the typical frequentist setting there can annoying computational and interpretational challenges in estimating, say, $\Pr(\alpha > 3\beta + \gamma )$, but this is no problem when we've simulated a large number of draws from the joint posterior distribution of our parameters.
