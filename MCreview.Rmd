@@ -3,6 +3,8 @@ title: "Refresher on Monte Carlo Methods"
 author: "David Buch"
 date: "8/19/2020"
 output: ioslides_presentation
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
@@ -12,7 +14,7 @@ knitr::opts_chunk$set(echo = FALSE)
 ## Basic Visualizations for EDA
 
 ```{r}
-descrim <- read.csv("cal_descrimination.csv", stringsAsFactors = T)
+descrim <- read.csv("data/cal_descrimination.csv", stringsAsFactors = T)
 summary(descrim)
 plot(descrim[,c("Age","Age.Cohort", "Expenditures")])
 coplot(Expenditures ~ Age | Ethnicity, panel = panel.smooth, data = descrim)
@@ -34,12 +36,50 @@ Also good to learn **ggplot2** and **lattice** packages.
 
 ## Fully Conjugate
 
+Advantages: 
+
+1. Fastest (only requires updating prior parameters to posterior ones)
+2. No ambiguity in convergence
+
+Disadvantages: 
+
+1. (Usually) only available for simple models
+
 ## Writing Custom Gibbs/MH Samplers
+
+Advantages: 
+
+1. Full customization lets you implement model-specific speed-ups
+2. No reliance on black-box methods
+
+Disadvantages: 
+
+1. Code can be slower or have errors
+2. (Often) has to be written new for each project
 
 ## Using JAGS
 
+Advantages: 
+
+1. Once you are familiar with syntax, writting down models is easy. 
+2. Pretty fast for some models
+
+Disadvantages: 
+
+1. Need to become familiar with syntax
+2. Pretty slow for some model
+
 ## Using Stan
 
+Advantages: 
+
+1. Basically the same as JAGS, but faster/slower for some models.  
+2. Has automatic warnings/checks for posterior convergence
+
+Disadvantages: 
+
+1. Cannot sample discrete parameters
+2. Another model syntax to learn
 
 ## What do we do with all those simulations?
 1. Run Diagnostics (for *Markov Chain* MC)
