@@ -88,7 +88,7 @@ Disadvantages:
 $$Y_i = \sum_j \beta_jX_{ij} + \epsilon_i, \ \epsilon \sim N(0,\sigma^2) \implies Y_i \sim N\left(\sum_j \beta_jX_{ij},\sigma^2\right)$$
 Prior: 
 
-$$\boldsymbol{\beta}|\sigma^2 \sim MVN(\mathbf{0},n \sigma^2 (X^T X)^{-1}), \ \sigma^{-2} \sim Gam(1/2,1/2) $$
+$$\boldsymbol{\beta}|\sigma^2 \sim MVN(\mathbf{0},n \sigma^2 (X^T X)^{-1}), \ \sigma^{2} \sim Gam(1/2,1/2) $$
 
 
 
