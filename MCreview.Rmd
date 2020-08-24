@@ -1,6 +1,6 @@
 ---
 title: "Refresher on Monte Carlo Methods"
-author: "David Buch"
+author: "Graham and David"
 date: "8/19/2020"
 output: ioslides_presentation
 editor_options: 
@@ -11,23 +11,29 @@ editor_options:
 knitr::opts_chunk$set(echo = FALSE)
 library(tidyverse)
 library(R2jags)
+library(rstan)
 ```
 
 ## Basic Visualizations for EDA
 
-```{r}
+```{r, echo = T}
 descrim <- read.csv("data/cal_descrimination.csv", stringsAsFactors = T)
-summary(descrim)
+par(mfrow = c(2,2))
 plot(descrim[,c("Age","Age.Cohort", "Expenditures")])
 coplot(Expenditures ~ Age | Ethnicity, panel = panel.smooth, data = descrim)
 boxplot(Expenditures ~ Gender, data = descrim)
+par(mfrow = c(1,1))
 ```
 
 Also good to learn **ggplot2** and **lattice** packages.
 
 
 ## Basic Model Fitting
-
+```{r, echo = T}
+flmod <- lm(Expenditures ~ Age.Cohort + Gender + Ethnicity,
+            data = descrim)
+summary(flmod)
+```
 
 
 ## Bayesian Model Fitting a.k.a. Posterior Computation
@@ -134,6 +140,40 @@ Disadvantages:
 1. Cannot sample discrete parameters
 2. Another model syntax to learn
 
+## Stan Example
+```{r, cache=T,warning=F,echo=T}
+model_text <- "
+data {
+  int<lower=0> N;  // Number of observations
+  int<lower=0> P;  // Number of predictors
+  matrix[N,P] x;  // Covariate data
+  vector[N] y;    // Response
+}
+parameters {
+  vector[P] beta; // regression coeffs
+  real<lower=0> sigma; // sd of error term
+}
+model {
+  y ~ normal(x * beta, sigma); // sd parameterization
+}
+"
+```
+
+## Stan Example -- Fit
+```{r, cache=T,message=F,warning=F,error=F,echo=T, results='hide'}
+model_data <- list(y = descrim$Expenditures, x = descrim.modelmat, 
+                   N = nrow(descrim.modelmat), 
+                   P = ncol(descrim.modelmat))
+stanfit <- stan(model_code = model_text, data = model_data)
+```
+
+```{r,echo = T}
+colnames(descrim.modelmat)
+stanfit
+```
+
+
+
 ## What do we do with all those simulations?
 1. Run Diagnostics (for *Markov Chain* MC)
 2. Run Diagnostics (for Model)
@@ -168,9 +208,9 @@ sigma.data %>%
 ## MCMC Diagnostics - Lag-1 Scatter Plots
 
 ```{r, warning = F}
+converge_labs <- c("Converged", "Not Converged")
 sigma.data %>% group_by(converged) %>% 
-  mutate(sigmat1 = lag(sigma,1),
-         converged = ifelse(converged,"Converged","Not Converged")) %>% 
+  mutate(sigmat1 = lag(sigma,1)) %>% 
   ggplot(aes(y=sigma,x=sigmat1)) + 
   geom_point() + 
   facet_wrap(~converged,scales = "free") + 
@@ -208,6 +248,53 @@ QQ-plots for regression
 
 Residuals vs fitted values
 
+## Model Diagnostics - Posterior Predictive
+>"The idea behind posterior predictive checking is simple: if a model is a good fit then we should be able to use it to generate data that looks a lot like the data we observed." 
+--Jonah Gabry in "Graphical posterior predictive checks using the bayesplot package"
+
+https://mc-stan.org/bayesplot/articles/graphical-ppcs.html
+
+```{r}
+stansamps <- extract(stanfit)
+## Generate artificial data below many times
+K <- 10
+ysims <- matrix(nrow = nrow(descrim.modelmat), ncol = K)
+for(k in 1:K){
+  for(i in 1:nrow(descrim.modelmat)){
+    w <- sample(1:nrow(stansamps$beta),1)
+    ysims[i,k] <-  rnorm(1,mean = descrim.modelmat[i,]*stansamps$beta[w,], sd = stansamps$sigma[w])
+  }
+}
+
+r <- sample(1:nrow(descrim),2)
+hist(ysims[r,])
+abline(v = descrim$Expenditures[r], col = "red")
+print(mean(ysims < 0))
+print(mean(descrim$Expenditures < 0))
+```
+
+## Model Diagnostics - QQ-plots
+```{r}
+beta_means <- colMeans(stansamps$beta)
+lin_fit <- descrim.modelmat %*% beta_means
+res <- descrim$Expenditures - lin_fit
+qqnorm(res/sd(res))
+abline(a = 0, b = 1, col= "red")
+```
+
+
+## Model Diagnostics - Residuals vs Fitted Values
+```{r}
+plot(lin_fit, res, ylab = "Residuals", xlab = "Fitted Values")
+```
+
+
 ## Posterior Inference
 One of the big payoffs of Bayesian inference and especially Monte Carlo computation is straightforward calculation of interpretable inferential quantities. In the typical frequentist setting there can annoying computational and interpretational challenges in estimating, say, $\Pr(\alpha > 3\beta + \gamma )$, but this is no problem when we've simulated a large number of draws from the joint posterior distribution of our parameters.
 
+## Posterior Inference
+Once we have fit a model that we are satisfied with, and have performed basic checks for MCMC posterior convergence, we can proceed with inference tasks. Using our posterior samples from Stan or JAGS, and assuming we were satisfied with our model, let's calculate:
+
+1. A 95\% CI for the difference in expenditure for Males vs. Females (of referent ethnicity and age cohort, if you included interactions)
+2. Probability that a person who identifies as Multi Race receives less expenditure than a person who is Hispanic
+3. The probability that the standard error of the residuals (sigma) is greater than 4000.
