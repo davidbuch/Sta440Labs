@@ -2,7 +2,9 @@
 title: "Refresher on Monte Carlo Methods"
 author: "Graham and David"
 date: "8/19/2020"
-output: ioslides_presentation
+output: 
+  ioslides_presentation:
+    css: 'scrollable_slides.css'
 editor_options: 
   chunk_output_type: console
 ---
@@ -231,7 +233,6 @@ par(mfrow = c(1,1))
 
 ```{r,echo=T}
 jags.result.converged$BUGSoutput$summary[,c(1:3,8:9)]
-jags.result.notconverged$BUGSoutput$summary[,c(1:3,8:9)]
 ```
 
 ## MCMC Diagnostics - Rhat/ESS
