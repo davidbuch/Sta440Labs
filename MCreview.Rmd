@@ -299,3 +299,19 @@ Once we have fit a model that we are satisfied with, and have performed basic ch
 1. A 95\% CI for the difference in expenditure for Males vs. Females (of referent ethnicity and age cohort, if you included interactions)
 2. Probability that a person who identifies as Multi Race receives less expenditure than a person who is Hispanic
 3. The probability that the standard error of the residuals (sigma) is greater than 4000.
+
+
+```{r}
+
+stansamps <- extract(stanfit)
+
+which(colnames(descrim.modelmat) == "GenderMale")
+stanfit #read off CI from beta[7] row
+
+mean(stansamps$beta[,10] - stansamps$beta[,11] > 0)
+rnorm(100000,stansamps$beta[,10] - stansamps$beta[,11],stansamps$sigma) %>% {.>0} %>% mean
+(1-pnorm(0,stansamps$beta[,10] - stansamps$beta[,11],stansamps$sigma)) %>% mean
+
+stansamps$sigma %>% {.>4000} %>% mean
+
+```
