@@ -1,0 +1,70 @@
+Working with Pickle Files on the DCC
+========================================================
+author: David Buch
+date: Sep 21, 2020
+autosize: true
+
+Pickling Data
+========================================================
+Pickle files are data that have been serialized using Python's specific serialization protocol. To translate an object into pickle format, we open a file connection (to **write bytestreams**), `dump` in a variable, and close the file connection.
+
+```{r, eval = F}
+import pickle
+
+structured_data = {"Name" : "Simon Rich", "Occupation": "Pickler"}
+pickle_barrel = open("simon.pickle", "wb")
+pickle.dump(structured_data, pickle_barrel)
+pickle_barrel.close()
+```
+
+Unpickling Data
+========================================================
+To unpickle data, we follow the pickling workflow in reverse: open the file connection (to **read** bytestreams), `load` it into a variable, and then close the connection.
+```{r, eval = F}
+import pickle
+
+pickle_barrel = open("simon.pickle", "rb")
+structured_simon = pickle.load(pickle_barrel)
+pickle_barrel.close()
+print(structured_simon)
+```
+
+Working on the DCC
+========================================================
+
+* Recall that to take advantage of DCC computing resources we must submit jobs to the SLURM workload manager.
+
+* The jobs are formulated as a series of Bash terminal commands, along with Slurm options specified through a special comment syntax, collected into a `.sh` file. 
+
+Using Pickle Data on the DCC
+======================
+Since pickling is a Python serialization tool, but we want to write our analyses in R, a basic exploratoration of the pickled WESAD data will require 3 components
+
+1. Bash (`.sh`) file, with Slurm options, that calls Python and R scripts
+2. Python unpickling script
+3. R analysis script
+
+Bash File (with Slurm options)
+===========================
+```{r, eval = F}
+#!/bin/bash
+#SBATCH --account=sta440-f20
+#SBATCH -p common
+#SBATCH --mem=2G
+
+module load R
+module load Python
+python unpickle.py
+Rscript summary_stats.R
+```
+
+Python unpickling script
+================================
+
+
+R analysis script
+================================
+
+
+## "Same as it ever was"
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;--- "Once in a Lifetime" by the Talking Heads
