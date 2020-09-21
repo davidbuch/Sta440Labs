@@ -60,7 +60,19 @@ Rscript summary_stats.R
 
 Python unpickling script
 ================================
+```{r, eval = F}
+import pickle
+import pandas as pd
 
+subjects = ["S10","S11"] #,"S13","S14","S15","S16","S17","S2","S3","S4","S5","S6","S7","S8","S9"]
+for sub in subjects:
+    b = open("/hpc/group/sta440-f20/WESAD/WESAD/" + sub + "/" + sub +  ".pkl", "rb")
+    sdat = pickle.load(b)
+    # Subset and format the data you want
+    # Create a pandas data frame "sdf"
+    sdf.to_csv("/work/dab118/WESAD/" + sub  + ".csv")
+    # Save to a directory in "/work" since it has significant storage
+```
 
 R analysis script
 ================================
