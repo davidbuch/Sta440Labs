@@ -79,6 +79,32 @@ Each poll $k$ reports $y_k$, the number of respondents voting for the Democrat, 
     \delta_1 &:= 0 
 \end{align}
 
+## Linzer (2013) - Observation model
+\newcommand{\logit}{\text{logit}}
+
+\setcounter{equation}{0}
+\begin{align}
+    y_k &\sim \text{Binom}(\pi_{i[k]j[k]},n_k) \\
+    \logit(\pi_{ij}) &= \beta_{ij} + \delta_{j} 
+\end{align}
+
+## Linzer (2013) - Evolution model
+
+\setcounter{equation}{2}
+\begin{align}
+    \text{for $j>1$: } \beta_{ij} &\sim N(\beta_{i,j-1},\sigma_\beta^2) \\
+    \delta_j &\sim N(\delta_{j-1},\sigma_\delta^2) 
+\end{align}
+
+## Linzer (2013) - Anchoring on Election Day
+
+\newcommand{\logit}{\text{logit}}
+\setcounter{equation}{4}
+\begin{align}
+    \text{for $j=1$: } \beta_{i1} &\sim N(\logit(h_i),s_i^2) \\
+    \delta_1 &:= 0 
+\end{align}
+
 ## Linzer (2013) - Interpretations
 
 What is the election forecast? 
@@ -119,31 +145,6 @@ States are correlated. What is the correlation of logit$(\pi_{i2})$ and logit$(\
 \end{align*}
 
 
-## Linzer (2013) - Observation model
-\newcommand{\logit}{\text{logit}}
-
-\setcounter{equation}{0}
-\begin{align}
-    y_k &\sim \text{Binom}(\pi_{i[k]j[k]},n_k) \\
-    \logit(\pi_{ij}) &= \beta_{ij} + \delta_{j} 
-\end{align}
-
-## Linzer (2013) - Evolution model
-
-\setcounter{equation}{2}
-\begin{align}
-    \text{for $j>1$: } \beta_{ij} &\sim N(\beta_{i,j-1},\sigma_\beta^2) \\
-    \delta_j &\sim N(\delta_{j-1},\sigma_\delta^2) 
-\end{align}
-
-## Linzer (2013) - Anchoring on Election Day
-
-\newcommand{\logit}{\text{logit}}
-\setcounter{equation}{4}
-\begin{align}
-    \text{for $j=1$: } \beta_{i1} &\sim N(\logit(h_i),s_i^2) \\
-    \delta_1 &:= 0 
-\end{align}
 
 ## Linzer (2013) - Results
 
