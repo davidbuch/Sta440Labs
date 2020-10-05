@@ -1,0 +1,200 @@
+---
+title: "Electoral College Forecasting"
+author: "Graham Tierney"
+date: "9/29/2020"
+output: beamer_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+
+## US Presidential Elections
+
+US Presidential elections have some unique features among advanced democracies. 
+\begin{enumerate}
+    \item States have electoral college (EC) votes equal to the number of Congressional representatives. 
+    \item Nearly all states use winner-take-all apportionment of EC votes; the state-level popular vote winner receivers all votes.  
+    \item The candidate who wins at least 270 of the 538 votes in the EC wins the election.  
+\end{enumerate}
+
+## Electoral College
+
+\begin{enumerate}
+    \item Each state has two Senators and at least one Representative, so states have a minimum of 3 EC votes. The states with the most vote are CA (55), TX (38), NY and FL (29).   
+    \item The two exceptions to the winner-take-all are Maine (ME) and Nebraska (NE). They award their EC votes each by congressional district with the two remaining votes. NE-2 (Omaha) and ME-2 (excludes Agusta and Portland) are probably competative in 2020. The state-wide winner must win at least one district. 
+    \item Not all forecasters model NE and ME separately, e.g. the Economist does not. 
+\end{enumerate}
+
+## Swing States
+
+\begin{enumerate}
+    \item Some forecasters focus on so-called ``swing states'', where the election outcome is in doubt. There is no consensus definition or list, and forecasters tend to be over rather than under-inclusive. 
+    \item The Economist model rates the following states/districts as at best "likely" (65-85% chance) for one candidate: Texas, Iowa, Ohio, Georgia, North Carolina, Arizaona, Florida, Pennsylvania. However, many would consider Nevada, New Hampshire, Wisconsin, Michigan, Minnesota, Virginia, Colorado, Maine, and New Mexico as potential swing states too. 
+\end{enumerate}
+
+## Forecasting the Presidential Election
+
+Key challenges: 
+\begin{enumerate}
+    \item Preferences change over time. Polls are a snapshot not a forecast. 
+    \item State-level polls are conducted infrequently and irregularly. 
+    \item \textbf{State-level outcomes are correlated.} 
+\end{enumerate}
+
+## State-level correlations
+
+Significant differences in 538's model and others for the 2016 election was modeling correlation in state-level polling misses. If Trump won Iowa, the 538 model would also project him as the likely winner in Wisconsin and Minnesota (nearby, demographically similar states). Clinton was ahead by a small margin in most swing state polls. If states are independent, a Trump win would require multiple unlikely, independent events. If states are dependent, a Trump win only requires a single (or fewer) unlikely events. 
+
+## State-level correlations
+
+As a simple, example, suppose there are 3 states with equal EC votes and candidate A is has the same probability p of winning each of them. If states are independent, then $P(\text{A wins}) = P(\text{A wins at least two}) = {3 \choose 2}p^2(1-p) + p^3$. In the other extreme of each state's outcome being identical, then $P(\text{A wins}) = p$. For $p>.5$, candidate A has a higher probability of winning in the independent scenario. 
+
+## Election forecast simplifications
+
+\begin{enumerate}
+  \item Forecasters often focus just on predicting the two-party (Democrat and Republican) share of the vote in each state, ignoring 3rd parties and undecided voters in polls. 
+  \item Polls are conducted over several days, but many models assume that the polls are relevant measures for only a single day (usual the midpoint or end date of the poll). If you do something like this, a good sensitivity analysis is to check how the forecast changes if you change the date used. 
+\end{enumerate}
+
+## Election forecast example - Linzer (2013)
+
+Linzer (2013) presents a Bayesian forecast model for the 2008 election that has become a useful reference and starting point for Bayesian election forecasting. The Economist model builds off of the fundamentals in this model. 
+
+Essentially, the model specifies how preferences evolve over time, and how polls are noisy measurements of the underlying preferences. 
+
+## Linzer (2013)
+
+Each poll $k$ reports $y_k$, the number of respondents voting for the Democrat, and $n_k$ the number respondents voting for either the Democrat or the Republican. $i[k]$ indexes the state and $j[k]$ the date of poll $k$. The election happens on day $1$, polls from at most $J$ days before the election are used.
+
+\newcommand{\logit}{\text{logit}}
+
+\begin{align}
+    y_k &\sim \text{Binom}(\pi_{i[k]j[k]},n_k) \\
+    \logit(\pi_{ij}) &= \beta_{ij} + \delta_{j} \\
+    \text{for $j>1$: } \beta_{ij} &\sim N(\beta_{i,j-1},\sigma_\beta^2) \\
+    \delta_j &\sim N(\delta_{j-1},\sigma_\delta^2) \\
+    \text{for $j=1$: } \beta_{i1} &\sim N(\logit(h_i),s_i^2) \\
+    \delta_1 &:= 0 
+\end{align}
+
+## Linzer (2013) - Interpretations
+
+What is the election forecast? 
+
+## Linzer (2013) - Interpretations
+
+What is the election forecast? 
+
+\[\text{EC Votes Won} = (\text{EC Votes}) * I(logit(\beta_{1:K,1})>.5)\]
+\[P(\text{Candidate Wins}) = P(\text{EC Votes Won}>=270)\]
+
+## Linzer (2013) - Interpretations
+
+States are correlated. What is the covariance of logit$(\pi_{i2})$ and logit$(\pi_{i'2})$ conditional on the variance terms $\sigma_\delta^2$ and $\sigma_{\beta}^2$?
+
+## Linzer (2013) - Interpretations
+
+States are correlated. What is the covariance of logit$(\pi_{i2})$ and logit$(\pi_{i'2})$ conditional on the variance terms $\sigma_\delta^2$ and $\sigma_{\beta}^2$?
+
+\begin{align*}
+  \beta_{i2} &= logit(h_i) + e_{i} + \epsilon_{i2} & \epsilon_{it} \overset{iid}{\sim} N(0,\sigma_\beta^2) ; e_{i} \overset{iid}{\sim} N(0,s_i^2)\\
+  \delta_{2} &= 0 + \nu_{2} & \nu_{t} \overset{iid}{\sim} N(0,\sigma_\delta^2)\\
+\end{align*}
+
+## Linzer (2013) - Interpretations
+
+States are correlated. What is the correlation of logit$(\pi_{i2})$ and logit$(\pi_{i'2})$ conditional on the variance terms $\sigma_\delta^2$ and $\sigma_{\beta}^2$?
+
+\begin{align*}
+  \beta_{i2} &= logit(h_i) + e_{i} + \epsilon_{i2} & \epsilon_{it} \overset{iid}{\sim} N(0,\sigma_\beta^2) ; e_{i} \overset{iid}{\sim} N(0,s_i^2)\\
+  \delta_{2} &= 0 + \nu_{2} & \nu_{t} \overset{iid}{\sim} N(0,\sigma_\delta^2)\\
+\end{align*}
+
+\begin{align*}
+  Cor(\beta_{i2} + \delta_{2},\beta_{i'2} + \delta_{2}) &= \frac{Cov(\beta_{i2} + \delta_{2},\beta_{i'2} + \delta_{2})}{sd(\beta_{i2} + \delta_{2})sd(\beta_{i2} + \delta_{2})} \\
+   &= \frac{Var(\delta_2)}{\prod_{k=i,i'}sd(\beta_{k2} + \delta_{2})} \\
+   &= \frac{\sigma^2_\delta}{\prod_{k=i,i'}\sqrt{s_k^2 + \sigma_\beta^2 + \sigma^2_\delta}}
+\end{align*}
+
+
+## Linzer (2013) - Observation model
+\newcommand{\logit}{\text{logit}}
+
+\setcounter{equation}{0}
+\begin{align}
+    y_k &\sim \text{Binom}(\pi_{i[k]j[k]},n_k) \\
+    \logit(\pi_{ij}) &= \beta_{ij} + \delta_{j} 
+\end{align}
+
+## Linzer (2013) - Evolution model
+
+\setcounter{equation}{2}
+\begin{align}
+    \text{for $j>1$: } \beta_{ij} &\sim N(\beta_{i,j-1},\sigma_\beta^2) \\
+    \delta_j &\sim N(\delta_{j-1},\sigma_\delta^2) 
+\end{align}
+
+## Linzer (2013) - Anchoring on Election Day
+
+\newcommand{\logit}{\text{logit}}
+\setcounter{equation}{4}
+\begin{align}
+    \text{for $j=1$: } \beta_{i1} &\sim N(\logit(h_i),s_i^2) \\
+    \delta_1 &:= 0 
+\end{align}
+
+## Linzer (2013) - Results
+
+\centering
+\includegraphics[width=\textwidth]{polling_intro/Linzer_Results.png}
+
+
+## Linzer (2013) Example Setup
+
+Suppose you want to model L swing states for J days before the election and you have K polls. Prepare the following in a list: 
+
+\begin{enumerate}
+\item y - a K-vector of poll results (number of intended voters for the Democrat, i.e.).
+\item n - a K-vector of poll sample sizes.
+\item t - a K-vector of the date for each poll.
+\item st - a K-vector of indicators for the state of each poll. 
+\item h - a L-vector of prior guesses for the final result in each state
+\item s - a L-vector of prior standard devations for the final result in each state. Recall, for the normal, almost all the mass is on mean $\pm$ 2 standard deviations. 
+\end{enumerate}
+
+## Linzer (2013) Example Code
+
+```{r,eval=F,echo=TRUE}
+model <- function(){
+  for(k in 1:K){
+    y[k] ~ dbin(p[k],n[k])
+    p[k] = logit(beta[st[k],t[k]] + delta[t[k]])
+  }
+  for(j in 2:J){
+    delta[j] ~ dnorm(delta[j-1],pow(sigma2_delta,-1))
+    for(i in 1:L){
+      beta[i,j] ~ dnorm(beta[i,j-1],pow(sigma2_beta,-1))
+    }
+  }
+  delta[1] = 0
+  for(i in 1:L){
+    beta[i,1] ~ dnorm(logit(h[i]),pow(s[i],-2))
+  }
+}
+```
+
+## Linzer (2013) - Improvements
+
+The Linzer model did fairly well in 2008, but polls were also fairly accurate that year. 
+
+Potential improvements: 
+\begin{enumerate}
+  \item Adding polling errors, learned from past elections. 
+  \item Allowing for excess polling variance above the implied binomial variance of $\pi_{ij}(1-\pi_{ij})/n_k$. 
+  \item Removing binomial model entirely and modeling $y_k/n_k$ or logit$(y_k/n_k)$.
+  \item Allowing for unique state-level correlations, e.g. not assuming $Cov(NC,NY) = Cov(CA,NY)$. 
+  \item Explicit modeling of $h_i$ and $s_i$, i.e. using a ``fundamentals'' prediction to set the prior. 
+\end{enumerate}
+
