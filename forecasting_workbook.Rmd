@@ -34,7 +34,7 @@ polls <- polls %>%
 
 ## Create data list
 
-JAGS and Stan neeed the data passed in as a named list. Create that here. Some have been filled in for you
+JAGS and Stan need the data passed in as a named list. Create that here. Some have been filled in for you
 
 ```{r data_list,eval=FALSE}
 states <- polls$state %>% unique
@@ -53,7 +53,7 @@ jags_data <- list(y=y,t=t,r=r,
 
 ## Write model
 
-The model we will use is $Y_k$, Clinton's share of the two-party vote, is normally distributed with mean $\beta_{jt}$, where the poll ended $t$ days before the election and was conducted on population $j$. Each state has its own observation variance, $\sigma^2_{yj}$ and two-party preferences. Thus, $Y_k \sim N(\beta_{jt},\sigma^2_{yh})$. We use a random walk for $\beta$, $\beta_{jt} \sim N(\beta_{jt-1},\sigma^2_{\beta j})$. We will let other states influence each other by placing a hierarhcial prior on the model parameters: $\{\sigma^2_{yj},\sigma^2_{\beta j},\beta_{j1}\}$. In the code below, everything is set up EXCEPT these heirarchical structures. You can choosee whatever distributions you like.  
+The model we will use is $Y_k$, Clinton's share of the two-party vote, is normally distributed with mean $\beta_{jt}$, where the poll ended $t$ days before the election and was conducted on population $j$. Each state has its own observation variance, $\sigma^2_{yj}$ and two-party preferences. Thus, $Y_k \sim N(\beta_{jt},\sigma^2_{yh})$. We use a random walk for $\beta$, $\beta_{jt} \sim N(\beta_{jt-1},\sigma^2_{\beta j})$. We will let other states influence each other by placing a hierarchical prior on the model parameters: $\{\sigma^2_{yj},\sigma^2_{\beta j},\beta_{j1}\}$. $\sigma^2_{yj} \sim P_{\sigma_y}$; $\sigma^2_{\beta j} \sim P_{\sigma_\beta}$; $\beta_{j1} \sim P_\beta$. In the code below, everything is set up EXCEPT these hierarchical structures. You can choose whatever distributions $P$ you like.  
 
 ```{r model,eval = F}
 model <- function(){
@@ -109,7 +109,7 @@ Now, lets look at some results.
 
 ## Bonus: Multivariate
 
-Now, instead of having all states equally correlated with each other via the heirarchy, we will estimate the correlation structure. Now $Y_k \sim N(\theta_{jt},\sigma^2_{yj})$. The evolution is as follows: 
+Now, instead of having all states equally correlated with each other via the hierarchy, we will estimate the correlation structure. Now $Y_k \sim N(\theta_{jt},\sigma^2_{yj})$. The evolution is as follows: 
 
 \[\theta_{\cdot t} \sim MVN(\theta_{\cdot t-1},\Sigma)\]
 

@@ -200,7 +200,7 @@ polls &lt;- polls %&gt;%
 </div>
 <div id="create-data-list" class="section level2">
 <h2>Create data list</h2>
-<p>JAGS and Stan neeed the data passed in as a named list. Create that here. Some have been filled in for you</p>
+<p>JAGS and Stan need the data passed in as a named list. Create that here. Some have been filled in for you</p>
 <pre class="r"><code>states &lt;- polls$state %&gt;% unique
 
 y &lt;- polls$y
@@ -216,7 +216,7 @@ jags_data &lt;- list(y=y,t=t,r=r,
 </div>
 <div id="write-model" class="section level2">
 <h2>Write model</h2>
-<p>The model we will use is <span class="math inline">\(Y_k\)</span>, Clinton's share of the two-party vote, is normally distributed with mean <span class="math inline">\(\beta_{jt}\)</span>, where the poll ended <span class="math inline">\(t\)</span> days before the election and was conducted on population <span class="math inline">\(j\)</span>. Each state has its own observation variance, <span class="math inline">\(\sigma^2_{yj}\)</span>. Thus, <span class="math inline">\(Y_k \sim N(\beta_{jt} + \delta_t,\sigma^2_{yh})\)</span>. We use a random walk for <span class="math inline">\(\beta\)</span>, <span class="math inline">\(\beta_{jt} \sim N(\beta_{jt-1},\sigma^2_{\beta j})\)</span>. We will let other states influence each other by placing a hierarhcial prior on the model parameters: <span class="math inline">\(\{\sigma^2_{yj},\sigma^2_{\beta j},\beta_{j1}\}\)</span>. In the code below, everything is set up EXCEPT these heirarchical structures. You can choosee whatever distributions you like.</p>
+<p>The model we will use is <span class="math inline">\(Y_k\)</span>, Clinton's share of the two-party vote, is normally distributed with mean <span class="math inline">\(\beta_{jt}\)</span>, where the poll ended <span class="math inline">\(t\)</span> days before the election and was conducted on population <span class="math inline">\(j\)</span>. Each state has its own observation variance, <span class="math inline">\(\sigma^2_{yj}\)</span> and two-party preferences. Thus, <span class="math inline">\(Y_k \sim N(\beta_{jt},\sigma^2_{yh})\)</span>. We use a random walk for <span class="math inline">\(\beta\)</span>, <span class="math inline">\(\beta_{jt} \sim N(\beta_{jt-1},\sigma^2_{\beta j})\)</span>. We will let other states influence each other by placing a hierarchical prior on the model parameters: <span class="math inline">\(\{\sigma^2_{yj},\sigma^2_{\beta j},\beta_{j1}\}\)</span>. <span class="math inline">\(\sigma^2_{yj} \sim P_{\sigma_y}\)</span>; <span class="math inline">\(\sigma^2_{\beta j} \sim P_{\sigma_\beta}\)</span>; <span class="math inline">\(\beta_{j1} \sim P_\beta\)</span>. In the code below, everything is set up EXCEPT these hierarchical structures. You can choose whatever distributions <span class="math inline">\(P\)</span> you like.</p>
 <pre class="r"><code>model &lt;- function(){
   for(k in 1:N_polls){
     y[k] ~ dnorm(p[k],1/sigma2_y[r[k]]) #note no longer binomial
@@ -247,8 +247,8 @@ jags_sims &lt;- jags(data = jags_data,model.file = model,parameters.to.save = c(
                   n.iter = 10000)</code></pre>
 <p>Now, lets look at some results.</p>
 <ol style="list-style-type: decimal">
-<li><p>For one or two states, plot the expected value of a poll of that state (<span class="math inline">\(\beta_{jt} + \delta_t\)</span>), 95% CIs, and observed poll results. Does your model look good?</p></li>
-<li><p>Compare the implied binomial variance: <span class="math inline">\(p(1-p)/n\)</span> to the estimated variance <span class="math inline">\(\sigma^2_{yj}\)</span> for one or two states. Do the quantities look similar?</p></li>
+<li><p>For one or two states, plot the expected value of a poll of that state (<span class="math inline">\(\beta_{jt}\)</span>), 95% CIs, and observed poll results. Does your model look good?</p></li>
+<li><p>Compare the implied binomial variance <span class="math inline">\(p(1-p)/n\)</span> to the estimated variance <span class="math inline">\(\sigma^2_{yj}\)</span> for one or two states. Do the quantities look similar?</p></li>
 <li><p>Who do you predict is the winner in each state? Give a forecast electoral college vote split by awarding all non-modeled results to the actual winner. EC votes: US-0, FL-29, NC-15, OH-18, PA-20, VA-13, WI-10.</p></li>
 <li><p>How does the probability of winning one state affect another? Estimate P(Clinton wins NC) and P(Clinton wins NC|Clinton wins OH), or pick your own pair of states. Are the probabilities different? Should they be?</p></li>
 <li><p>Finally, try removing all data from the final month of the campaign from <code>jags_data</code>, then re-estimate the model. Do your predictions change?</p></li>
@@ -256,7 +256,7 @@ jags_sims &lt;- jags(data = jags_data,model.file = model,parameters.to.save = c(
 </div>
 <div id="bonus-multivariate" class="section level2">
 <h2>Bonus: Multivariate</h2>
-<p>Now, instead of having all states equally correlated with each other, we will estimate the result. Now <span class="math inline">\(Y_k \sim N(\theta_{jt},\sigma^2_{yj})\)</span>. The evolution is as follows:</p>
+<p>Now, instead of having all states equally correlated with each other via the hierarchy, we will estimate the correlation structure. Now <span class="math inline">\(Y_k \sim N(\theta_{jt},\sigma^2_{yj})\)</span>. The evolution is as follows:</p>
 <p><span class="math display">\[\theta_{\cdot t} \sim MVN(\theta_{\cdot t-1},\Sigma)\]</span></p>
 <p>Using same priors on <span class="math inline">\(\theta_{\cdot 1}\)</span>, the day of the election, as before, rewrite the jags code to implement the above model.</p>
 <pre class="r"><code>model_mv &lt;- function(){
