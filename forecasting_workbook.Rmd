@@ -1,0 +1,191 @@
+---
+title: "Election Prediction"
+author: "Graham Tierney"
+date: "10/11/2020"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(R2jags)
+
+```
+
+## Set up data
+
+Here we load the polling data and drop duplicate questions. 
+
+```{r load,eval=FALSE}
+
+polls <- read_csv("data/2016_Economist_Polls.csv") %>% 
+  filter(population %in% c("Likely Voters","Registered Voters"),question.iteration == 1) %>% #remove duplicate questions
+  mutate(days_to_election = as.Date("2016-11-08") - end.date,
+         state = ifelse(state == "--","US",state),
+         y = clinton/(clinton + trump)*100)
+
+### EXERCISE: filter polls to only polls 100 days or fewer before the election and the following states: US,WI,OH,PA,NC,FL,VA
+polls <- polls %>% 
+  filter()
+```
+
+## Create data list
+
+JAGS and Stan neeed the data passed in as a named list. Create that here. Some have been filled in for you
+
+```{r data_list,eval=FALSE}
+states <- polls$state %>% unique
+
+y <- polls$y
+r <- match(polls$state,states)
+t <- polls$days_to_election + 1 #WHY PLUS ONE?
+
+N_polls <- 
+N_states <- 
+N_days <- 
+
+jags_data <- list(y=y,t=t,r=r,
+                  N_polls=N_polls,N_states=N_states,N_days=N_days)
+```
+
+## Write model
+
+The model we will use is $Y_k$, Clinton's share of the two-party vote, is normally distributed with mean $\beta_{jt}$, where the poll ended $t$ days before the election and was conducted on population $j$. Each state has its own observation variance, $\sigma^2_{yj}$. Thus, $Y_k \sim N(\beta_{jt} + \delta_t,\sigma^2_{yh})$. We use a random walk for $\beta$, $\beta_{jt} \sim N(\beta_{jt-1},\sigma^2_{\beta j})$. We will let other states influence each other by placing a hierarhcial prior on the model parameters: $\{\sigma^2_{yj},\sigma^2_{\beta j},\beta_{j1}\}$. In the code below, everything is set up EXCEPT these heirarchical structures. You can choosee whatever distributions you like. 
+
+```{r model,eval = F}
+model <- function(){
+  for(k in 1:N_polls){
+    y[k] ~ dnorm(p[k],1/sigma2_y[r[k]]) #note no longer binomial
+    p[k] = beta[r[k],t[k]] 
+  }
+  for(j in 2:N_days){
+    for(i in 1:N_states){
+      beta[i,j] ~ dnorm(beta[i,j-1],pow(sigma2_beta[i],-1))
+    }
+  }
+  
+  #EXERCISE: add hierarhciacl prior for sigma2_beta and sigma2_y, i.e. sigma2_beta[j] all come from a common distribution 
+  for(j in 1:N_states){
+      sigma2_y[j] 
+      
+      sigma2_beta[j] 
+
+      beta[j,1] 
+  }
+
+}
+```
+
+## Run and analyze results
+
+```{r run_model,eval=F}
+
+#be sure to add your added parameters to parameters.to.save
+jags_sims <- jags(data = jags_data,model.file = model,parameters.to.save = c("beta","sigma2_beta",
+                                                                             "p","sigma2_y"),
+                  n.iter = 10000)
+
+
+```
+
+Now, lets look at some results. 
+
+1) For one or two states, plot the expected value of a poll of that state ($\beta_{jt} + \delta_t$), 95\% CIs, and observed poll results. Does your model look good? 
+
+2) Compare the implied binomial variance: $p(1-p)/n$ to the estimated variance $\sigma^2_{yj}$ for one or two states. Do the quantities look similar? 
+
+3) Who do you predict is the winner in each state? Give a forecast electoral college vote split by awarding all non-modeled results to the actual winner. EC votes: US-0, FL-29, NC-15, OH-18, PA-20, VA-13, WI-10. 
+
+4) How does the probability of winning one state affect another? Estimate P(Clinton wins NC) and P(Clinton wins NC|Clinton wins OH), or pick your own pair of states. Are the probabilities different? Should they be? 
+
+5) Finally, try removing all data from the final month of the campaign from `jags_data`, then re-estimate the model. Do your predictions change? 
+
+```{r solutions}
+
+```
+
+## Bonus: Multivariate
+
+Now, instead of having all states equally correlated with each other, we will estimate the result. Now $Y_k \sim N(\theta_{jt},\sigma^2_{yj})$. The evolution is as follows: 
+
+\[\theta_{\cdot t} \sim MVN(\theta_{\cdot t-1},\Sigma)\]
+
+Using same priors on $\theta_{\cdot 1}$, the day of the election, as before, rewrite the jags code to implement the above model. 
+
+```{r mv_model}
+model_mv <- function(){
+  for(k in 1:N_polls){
+    y[k] ~ dnorm(p[k],1/sigma2_y[r[k]]) #note no longer binomial
+    p[k] = theta[r[k],t[k]]
+  }
+  for(j in 2:N_days){
+    theta[1:N_states,j] ~ dmnorm(XXX,Phi)
+  }
+  Phi ~ dwish(XXX,XXX) #fill in wishart parameters, google JAGS wishart distribution should turn it up
+  Sigma = inverse(Phi)
+  #which, Phi or Sigma, is the covariance and which is the precision? 
+  
+  #Use your hierarhciacl prior for sigma2_y and any theta1 prior you like
+  for(j in 1:N_states){
+      sigma2_y[j] 
+  }
+}
+```
+
+Re-estimate the model. 
+
+```{r run_model,eval=F}
+
+#be sure to add your added parameters to parameters.to.save
+jags_sims <- jags(data = jags_data,model.file = model_mv,parameters.to.save = c("theta","Sigma",
+                                                                                "p","sigma2_y"),
+                  n.iter = 10000)
+```
+
+Now, how does the probability of winning one state affect another? Estimate P(Clinton wins NC) and P(Clinton wins NC|Clinton wins OH), or pick your own pair of states. Are the probabilities different? 
+
+```{r mv_solutions}
+
+```
+
+Try to visualize the correlation matrix. The `get_heatmap` function below will take a correlation matrix and make a heatmap. 
+
+```{r heatmap}
+
+reorder_cormat <- function(cormat){
+  # Use correlation between variables as distance
+  dd <- as.dist((1-cormat)/2)
+  hc <- hclust(dd)
+  cormat <-cormat[hc$order, hc$order]
+}
+get_upper_tri <- function(cormat){
+  cormat[lower.tri(cormat)]<- NA
+  return(cormat)
+}
+
+get_heatmap <- function(cormat){
+  cormat %>% 
+    cov2cor() %>% 
+    reorder_cormat %>% 
+    get_upper_tri %>% 
+    reshape2::melt(na.rm = TRUE) %>% 
+    ggplot(aes(Var2, Var1, fill = value))+
+    geom_tile(color = "white")+
+    scale_fill_gradient2(low = "blue", high = "red", mid = "white", 
+                         midpoint = 0, limit = c(-1,1), space = "Lab", 
+                         name="Pearson\nCorrelation") +
+    theme_minimal()+ # minimal theme
+    labs(x="",y="") + 
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, 
+                                     size = 12, hjust = 1))+
+    coord_fixed()
+}
+```
+
+
+```{r plot_cor}
+
+```
