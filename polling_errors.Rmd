@@ -1,0 +1,47 @@
+---
+title: "Polling Errors"
+author: "Graham Tierney"
+date: "11/6/2020"
+output: beamer_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Assuming unbiased polls
+
+Most of you did something like this. For each poll $k$ of state $s$ at time $t$, $Y_{stk}$ gives the two-party support share of a candidate. 
+
+\begin{align*}
+E[Y_{stk}] &= \theta_{s,t} \\
+\theta_{s,t} &\sim N(\theta_{s,t-1},\sigma_\theta) \\
+\end{align*}
+
+Winner determined by $\theta_{s,1} >50\%$. 
+
+## Checking bias
+
+You could do this:
+
+\begin{align*}
+E[Y_{stk}] &= \theta_{s,t} + \alpha_s \\
+\theta_{s,t} &\sim N(\theta_{s,t-1},\sigma_\theta) \\
+\alpha_{s} &\overset{iid}{\sim} N(\mu_\alpha,\sigma_\alpha) \\
+\end{align*}
+
+Winner determined by $\theta_{s,1} >50\%$. 
+
+## How to set hyper parameters?
+
+
+Could set $\mu_\alpha = \text{mean}(b_1,\ldots,b_S)$ and $\sigma_\alpha = \text{sd}(b_1,\ldots,b_S)$ where $b_s$ is a point estimate of polling error in 2016 in state $s$ (lots of analysts have made these). Could look at longer historical data by state. 
+
+Because the polling data cannot separate $\theta$ and $\alpha$, sensitivity checks, particularly in $\mu_\alpha$, are very important. Could make a plot of P(Biden Win) vs $\mu_\alpha$. 
+
+## How to estimate? 
+
+Note lack of information in data is a blessing and a curse. Curse is obvious, you can't learn them. But the blessing is you don't necessarily need to re-estimate your model.\footnote{The priors do technically provide identifiability, and a fully Bayesian approach would be to re-estimate the model with priors on $\alpha_s$ and $\theta_{s,1}$.} 
+
+If you have your simulated draws of $\theta_{s,1}$, don't need to re-estimate model. For draw of $\theta_{s,1}$, subtract rnorm(1,$\mu_\alpha$,$\sigma_\alpha$) and recompute who wins. 
+
